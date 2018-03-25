@@ -1,23 +1,82 @@
 package com.example.tracking;
 
+import android.content.Context;
+import android.support.annotation.Nullable;
+import android.widget.Toast;
+
+import java.io.IOException;
+
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
+
 /**
  * Created by Dabas on 2018-03-18.
  */
 
 
-//Maybe make a bitcoin price checker
-public class Repo {
-    public static final String BTC_URL = "https://api.coindesk.com/v1/bpi/currentprice/btc.json";
-    private static final String TAG = "URLBUILDER";
+public class Repo implements Callback<Summary>{
     private String mTrackingNum;
+    private Context mContext;
 
-    public Repo(String mTrackingNum) {
-        this.mTrackingNum = mTrackingNum;
+    public Repo(Context context, String trackingNum) {
+        mContext = context;
+        mTrackingNum = trackingNum;
     }
 
-    public String getTrackingDetails(){
+    public void getTrackingDetails() {
 
-        //TODO - restCall for tracking details and set timer
-        return "";
+        String username = "c2c0380cf31db14c";
+        String pass = "f7055d29ecde79a208e45e";
+
+        OkHttpClient client = createAuthclient(username, pass);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(String.format(TrackingAPI.TRACKING_URL, mTrackingNum))
+                .client(client)
+                .addConverterFactory(SimpleXmlConverterFactory.create())
+                .build();
+
+        TrackingAPI trackingAPI = retrofit.create(TrackingAPI.class);
+        Call<Summary> summaryCall = trackingAPI.getTrackingSummary();
+        summaryCall.enqueue(this);
+    }
+
+    @Override
+    public void onResponse(Call<Summary> call, retrofit2.Response<Summary> response) {
+        if(response.isSuccessful()){
+            String eventType = response.body().getEventType();
+            String expectedDate = response.body().getExpectedDate();
+            String deliveryDate = response.body().getDeliveryDate();
+            String eventLoc = response.body().getEventLocation();
+
+            Toast.makeText(mContext, eventType + " On " + deliveryDate + " at " + eventLoc, Toast.LENGTH_SHORT ).show();
+        } else {
+            System.out.println(response.body().toString());
+        }
+    }
+
+    @Override
+    public void onFailure(Call<Summary> call, Throwable t) {
+        System.out.println(t.toString());
+    }
+
+    public static OkHttpClient createAuthclient(final String username, final String pass) {
+        OkHttpClient httpClient = new OkHttpClient().newBuilder().authenticator(new Authenticator() {
+            @Nullable
+            @Override
+            public Request authenticate(Route route, Response response) throws IOException {
+                String credential = Credentials.basic(username, pass);
+                return response.request().newBuilder().header("Authorization", credential).build();
+            }
+        }).build();
+        return httpClient;
     }
 }

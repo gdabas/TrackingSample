@@ -78,7 +78,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-            repo = new Repo(trackingId.toString());
+            repo = new Repo(this, trackingId.getText().toString());
             repo.getTrackingDetails();
 
             startCountDown(counterInMilliSec);
@@ -94,7 +94,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             public void onFinish() {
                 secondTextView.setText("0");
-                //TODO - Call the network again
             }
         }.start();
     }
