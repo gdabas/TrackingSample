@@ -4,7 +4,6 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
@@ -18,11 +17,73 @@ import android.widget.TextView;
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
 
     private TrackingViewModel mTrackingViewModel;
-    private final int counterInMilliSec = 10000;
-    private Repo repo;
+    private final int counterInMilliSec = 30000;
     EditText trackingId;
     Button findPackageButton;
-    TextView secondTextView, refreshTextView;
+    TextView liveDataTimerText, timerText, locationText;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        trackingId = findViewById(R.id.tracking_id_text_view);
+        findPackageButton = findViewById(R.id.find_button);
+        liveDataTimerText = findViewById(R.id.seconds_textview);
+        timerText = findViewById(R.id.timer);
+        locationText = findViewById(R.id.locationText);
+
+        trackingId.addTextChangedListener(trackingTextWatcher);
+
+        attachViewModel();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.find_button) {
+
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+            startTimers();
+
+            //Find the Parcel
+            mTrackingViewModel.trackId(trackingId.getText().toString());
+        }
+    }
+
+    public void attachViewModel(){
+        // Setting ViewModel for this Activity
+        mTrackingViewModel = ViewModelProviders.of(this).get(TrackingViewModel.class);
+
+        //Setup Observer to update UI when new changes Observed
+        final Observer<String> timeObserver = new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+                String secondLeft = String.valueOf(s);
+                liveDataTimerText.setText(secondLeft);
+            }
+        };
+
+        //Start Observing
+        mTrackingViewModel.getMinutes().observe(this, timeObserver);
+    }
+
+    public void startTimers(){
+        CountDowns basicCountDown = new CountDowns(this, counterInMilliSec, 1000);
+        CountDowns liveDataCountDown = new CountDowns(this, counterInMilliSec, 1000);
+
+        basicCountDown.start();
+        liveDataCountDown.start();
+    }
+
+    public void updateBasicTimer(String secondLeft){
+        timerText.setText(secondLeft);
+    }
+
+    public void trackingResult(String loc){
+        locationText.setText(loc);
+    }
 
     TextWatcher trackingTextWatcher = new TextWatcher() {
         @Override
@@ -45,56 +106,4 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         }
     };
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        trackingId = findViewById(R.id.tracking_id_text_view);
-        findPackageButton = findViewById(R.id.find_button);
-        secondTextView = findViewById(R.id.seconds_textview);
-        refreshTextView = findViewById(R.id.refresh_textview);
-
-        trackingId.addTextChangedListener(trackingTextWatcher);
-
-        mTrackingViewModel = ViewModelProviders.of(this).get(TrackingViewModel.class);
-        final Observer<Integer> timeObserver = new Observer<Integer>() {
-            @Override
-            public void onChanged(@Nullable Integer integer) {
-                String secondLeft = String.valueOf(integer);
-                secondTextView.setText(secondLeft);
-            }
-        };
-
-        mTrackingViewModel.getMinutes().observe(this, timeObserver);
-
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.find_button) {
-
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-            repo = new Repo(this, trackingId.getText().toString());
-            repo.getTrackingDetails();
-
-            startCountDown(counterInMilliSec);
-        }
-    }
-
-
-    public void startCountDown(int millisec){
-        new CountDownTimer(millisec, 1000) {
-            public void onTick(long millisUntilFinished) {
-                mTrackingViewModel.getMinutes().setValue((int) millisUntilFinished / 1000);
-            }
-
-            public void onFinish() {
-                secondTextView.setText("0");
-            }
-        }.start();
-    }
 }

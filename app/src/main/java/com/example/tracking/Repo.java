@@ -52,23 +52,28 @@ public class Repo implements Callback<Summary>{
     @Override
     public void onResponse(Call<Summary> call, retrofit2.Response<Summary> response) {
         if(response.isSuccessful()){
-            String eventType = response.body().getEventType();
-            String expectedDate = response.body().getExpectedDate();
-            String deliveryDate = response.body().getDeliveryDate();
-            String eventLoc = response.body().getEventLocation();
+            if (response.body() != null){
+                String eventType = response.body().getEventType();
+                String expectedDate = response.body().getExpectedDate();
+                String deliveryDate = response.body().getDeliveryDate();
+                String eventLoc = response.body().getEventLocation();
 
-            Toast.makeText(mContext, eventType + " On " + deliveryDate + " at " + eventLoc, Toast.LENGTH_SHORT ).show();
+                Toast.makeText(mContext, eventType + " On " + deliveryDate + " at " + eventLoc, Toast.LENGTH_SHORT ).show();
+            }
+
         } else {
-            System.out.println(response.body().toString());
+            //TODO - Maybe use SnackBar
+            Toast.makeText(mContext, "Package Tracking ID not found", Toast.LENGTH_SHORT ).show();
         }
     }
 
     @Override
     public void onFailure(Call<Summary> call, Throwable t) {
+        Toast.makeText(mContext, "The Call FAILED!!!", Toast.LENGTH_SHORT ).show();
         System.out.println(t.toString());
     }
 
-    public static OkHttpClient createAuthclient(final String username, final String pass) {
+    private static OkHttpClient createAuthclient(final String username, final String pass) {
         OkHttpClient httpClient = new OkHttpClient().newBuilder().authenticator(new Authenticator() {
             @Nullable
             @Override

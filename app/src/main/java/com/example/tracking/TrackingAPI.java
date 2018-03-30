@@ -9,7 +9,7 @@ import retrofit2.http.GET;
  */
 
 public interface TrackingAPI {
-    public static final String TRACKING_URL = "https://soa-gw.canadapost.ca/vis/track/pin/%s/";
+    String TRACKING_URL = "https://soa-gw.canadapost.ca/vis/track/pin/%s/";
 
     @GET("summary")
     Call<Summary> getTrackingSummary();

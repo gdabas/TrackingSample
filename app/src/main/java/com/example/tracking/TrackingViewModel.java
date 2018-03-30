@@ -11,16 +11,25 @@ import android.support.annotation.NonNull;
 
 public class TrackingViewModel extends AndroidViewModel {
 
-    public MutableLiveData<Integer> mSeconds;
+    private Repo repo;
+    public MutableLiveData<String> mSeconds;
+    public MutableLiveData<String> mSummary;
 
     public TrackingViewModel(@NonNull Application application) {
         super(application);
     }
 
-    public MutableLiveData<Integer> getMinutes(){
+    public MutableLiveData<String> getMinutes(){
         if (mSeconds == null){
             mSeconds = new MutableLiveData<>();
         }
         return mSeconds;
     }
+
+    public void trackId(String trackingId){
+        //Call the API
+        repo = new Repo(this.getApplication(), trackingId);
+        repo.getTrackingDetails();
+    }
+
 }
