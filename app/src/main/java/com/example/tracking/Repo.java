@@ -58,7 +58,7 @@ public class Repo implements Callback<Summary>{
                 String deliveryDate = response.body().getDeliveryDate();
                 String eventLoc = response.body().getEventLocation();
 
-                Toast.makeText(mContext, eventType + " On " + deliveryDate + " at " + eventLoc, Toast.LENGTH_SHORT ).show();
+                Toast.makeText(mContext, eventType + " On " + deliveryDate + " at " + eventLoc, Toast.LENGTH_LONG).show();
             }
 
         } else {

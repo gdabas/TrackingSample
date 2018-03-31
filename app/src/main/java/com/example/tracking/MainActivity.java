@@ -6,8 +6,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -33,8 +31,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         timerText = findViewById(R.id.timer);
         locationText = findViewById(R.id.locationText);
 
-        trackingId.addTextChangedListener(trackingTextWatcher);
-
         attachViewModel();
     }
 
@@ -46,9 +42,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
             startTimers();
-
-            //Find the Parcel
-            mTrackingViewModel.trackId(trackingId.getText().toString());
         }
     }
 
@@ -62,6 +55,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             public void onChanged(@Nullable String s) {
                 String secondLeft = String.valueOf(s);
                 liveDataTimerText.setText(secondLeft);
+                if (secondLeft.equals("0")){
+                    //Find the Parcel
+                    mTrackingViewModel.trackId(trackingId.getText().toString());
+                }
             }
         };
 
@@ -81,29 +78,4 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         timerText.setText(secondLeft);
     }
 
-    public void trackingResult(String loc){
-        locationText.setText(loc);
-    }
-
-    TextWatcher trackingTextWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (trackingId.toString().trim().length() > 4) {
-                findPackageButton.setEnabled(true);
-
-            } else {
-                findPackageButton.setEnabled(false);
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-    };
 }
